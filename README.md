@@ -1,3 +1,31 @@
+> ## Why this fork exists
+>
+> This is a fork of [mlalma/MisakiSwift](https://github.com/mlalma/MisakiSwift)
+> with **one line changed**, so that Kokoro's G2P can run in the same Swift
+> package graph as a model that needs a newer MLX.
+>
+> ```diff
+> - .package(url: ".../mlx-swift", exact: "0.30.2"),
+> + .package(url: ".../mlx-swift", from: "0.30.2"),
+> ```
+>
+> Upstream pins `mlx-swift` to **exactly 0.30.2**. `mlx-swift-lm` (used for
+> on-device language models) requires **0.31.3..<0.32.0**, so SwiftPM refuses
+> any graph containing both. Relaxing the pin in
+> [kokoro-ios](https://github.com/NooronSpatial/kokoro-ios) alone is not
+> enough — this package carries the same pin, so the G2P drags it in on its
+> own.
+>
+> The relaxed range was verified before this fork was made: MisakiSwift builds
+> against **mlx-swift 0.31.6 with zero errors and zero warnings**, with the
+> pin as the only variable changed. Compilation is not proof of numerical
+> equivalence, and runtime behaviour on device is checked separately.
+>
+> Nothing else is modified. Fixes belong upstream; if upstream relaxes the
+> pin, this fork should be deleted rather than maintained.
+>
+> ---
+>
 # MisakiSwift
 
 A Swift port of the [Misaki](https://github.com/hexgrad/misaki) grapheme-to-phoneme (G2P) library for converting English text to phonetic representations suitable for text-to-speech (TTS) engines.
