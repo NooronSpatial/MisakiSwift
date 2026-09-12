@@ -27,7 +27,19 @@ let package = Package(
         .product(name: "MLXUtilsLibrary", package: "MLXUtilsLibrary")
      ],
      resources: [
-      .copy("../../Resources/")
+       // The eight FILES, flat — not the folder. Copying a folder named
+       // `Resources` puts `Resources/` at the bundle's root, and the iOS
+       // Simulator's ad-hoc code signing rejects that layout ("bundle format
+       // unrecognized"). A device build never signs the bare bundle, so it
+       // passed there and failed in every consuming app's simulator build.
+       .copy("../../Resources/gb_bart.safetensors"),
+       .copy("../../Resources/gb_bart_config.json"),
+       .copy("../../Resources/gb_gold.json"),
+       .copy("../../Resources/gb_silver.json"),
+       .copy("../../Resources/us_bart.safetensors"),
+       .copy("../../Resources/us_bart_config.json"),
+       .copy("../../Resources/us_gold.json"),
+       .copy("../../Resources/us_silver.json")
      ]
     ),
     .testTarget(
