@@ -1,3 +1,48 @@
+> ## Why this fork exists
+>
+> This is a fork of [mlalma/MisakiSwift](https://github.com/mlalma/MisakiSwift)
+> with **two lines changed**, so that Kokoro's G2P can run in the same Swift
+> package graph as a model that needs a newer MLX.
+>
+> ```diff
+> - .package(url: ".../mlx-swift", exact: "0.30.2"),
+> + .package(url: ".../mlx-swift", from: "0.30.2"),
+> ```
+>
+> Upstream pins `mlx-swift` to **exactly 0.30.2**. `mlx-swift-lm` (used for
+> on-device language models) requires **0.31.3..<0.32.0**, so SwiftPM refuses
+> any graph containing both. Relaxing the pin in
+> [kokoro-ios](https://github.com/NooronSpatial/kokoro-ios) alone is not
+> enough — this package carries the same pin, so the G2P drags it in on its
+> own.
+>
+> The relaxed range was verified before this fork was made: MisakiSwift builds
+> against **mlx-swift 0.31.6 with zero errors and zero warnings**, with the
+> pin as the only variable changed. Compilation is not proof of numerical
+> equivalence, and runtime behaviour on device is checked separately.
+>
+> **The second line: the library is no longer `type: .dynamic`.** Upstream
+> ships it as a dynamic framework. In an app that ALSO links MLX statically
+> (through `mlx-swift-lm`), that puts `MLXNN` into the process twice — once
+> inside `MisakiSwift.framework`, once in the app binary — and the
+> Objective-C runtime logs sixty warnings of the form *"Class MLXNN.Linear
+> is implemented in both … This may cause spurious casting failures and
+> mysterious crashes."* Static linking removes the second copy; verified by
+> inspecting the built app bundle before this change was pushed.
+>
+> ```diff
+>   .library(
+>     name: "MisakiSwift",
+> -   type: .dynamic,
+>     targets: ["MisakiSwift"]
+>   ),
+> ```
+>
+> Nothing else is modified. Fixes belong upstream; if upstream relaxes the
+> pin, this fork should be deleted rather than maintained.
+>
+> ---
+>
 # MisakiSwift
 
 A Swift port of the [Misaki](https://github.com/hexgrad/misaki) grapheme-to-phoneme (G2P) library for converting English text to phonetic representations suitable for text-to-speech (TTS) engines.
